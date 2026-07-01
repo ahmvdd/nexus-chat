@@ -1,42 +1,31 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: #0c0c0e;
-  --surface: #111114;
-  --border: rgba(255, 255, 255, 0.07);
-  --green: #4ade80;
-  --muted: rgba(255, 255, 255, 0.35);
-}
-
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--bg);
-  color: white;
-  font-family: "Space Grotesk", system-ui, sans-serif;
+  background: #000;
+  color: #fff;
+  font-family: "Courier New", Courier, monospace;
   height: 100dvh;
   overflow: hidden;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 2px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #000;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
+  background: #333;
 }
 
-/* Markdown dans les messages */
 .prose-nexus p {
   margin-bottom: 0.5rem;
 }
@@ -44,81 +33,65 @@ body {
   margin-bottom: 0;
 }
 .prose-nexus pre {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  padding: 14px 16px;
+  background: #111;
+  border: 1px solid #333;
+  padding: 12px 14px;
   overflow-x: auto;
   font-size: 13px;
   line-height: 1.6;
-  margin: 10px 0;
-  font-family: "Fira Code", "Cascadia Code", monospace;
+  margin: 8px 0;
+  font-family: "Courier New", monospace;
 }
 .prose-nexus code:not(pre code) {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  padding: 2px 6px;
+  background: #111;
+  border: 1px solid #333;
+  padding: 1px 5px;
   font-size: 13px;
-  font-family: "Fira Code", monospace;
+  font-family: "Courier New", monospace;
 }
 .prose-nexus strong {
-  color: white;
-  font-weight: 600;
+  color: #fff;
+  font-weight: 700;
 }
 .prose-nexus ul,
 .prose-nexus ol {
   padding-left: 1.25rem;
-  margin: 6px 0;
+  margin: 4px 0;
 }
 .prose-nexus li {
-  margin: 3px 0;
-  color: rgba(255, 255, 255, 0.8);
+  margin: 2px 0;
+  color: #ccc;
 }
 .prose-nexus h1,
 .prose-nexus h2,
 .prose-nexus h3 {
-  font-weight: 600;
-  color: white;
-  margin: 12px 0 6px;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  color: #fff;
+  margin: 10px 0 4px;
 }
-.prose-nexus h1 { font-size: 1.25rem; }
-.prose-nexus h2 { font-size: 1.1rem; }
+.prose-nexus h1 { font-size: 1.2rem; }
+.prose-nexus h2 { font-size: 1.05rem; }
 .prose-nexus h3 { font-size: 1rem; }
 .prose-nexus a {
-  color: #4ade80;
+  color: #fff;
   text-decoration: underline;
-  text-underline-offset: 2px;
 }
 .prose-nexus blockquote {
-  border-left: 2px solid rgba(74, 222, 128, 0.4);
-  padding-left: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  font-style: italic;
-  margin: 8px 0;
+  border-left: 2px solid #444;
+  padding-left: 10px;
+  color: #888;
+  margin: 6px 0;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .animate-in {
-  animation: fadeInUp 0.2s ease forwards;
+  animation: fadeIn 0.15s ease forwards;
 }
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
-.blink { animation: blink 2.5s infinite; }
 
 @keyframes dot-bounce {
-  0%, 60%, 100% { opacity: 0.2; transform: scale(0.9); }
-  30% { opacity: 1; transform: scale(1.1); }
+  0%, 60%, 100% { opacity: 0.2; }
+  30% { opacity: 1; }
 }

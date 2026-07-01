@@ -1,61 +1,99 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useChat } from "ai/react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import WelcomeScreen from "@/components/WelcomeScreen";
 import MessageBubble, { TypingIndicator } from "@/components/MessageBubble";
 import InputArea from "@/components/InputArea";
-import { Conversation, Model } from "@/types";
+import { Conversation, Message, Model } from "@/types";
 import { generateId, getConversationTitle } from "@/lib/utils";
+
+const SYSTEM_PROMPT = `Tu es Nexus, un assistant IA personnel élégant, direct et compétent.
+Tu réponds de manière concise et utile, avec une touche de personnalité.
+Tu peux répondre en français ou en anglais selon la langue de l'utilisateur.
+Pour le code, tu utilises toujours des blocs de code avec la syntaxe appropriée.`;
 
 export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
-  const [model, setModel] = useState<Model>("claude-sonnet-4-6");
+  const [model, setModel] = useState<Model>("llama3.2");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const { messages, input, setInput, handleSubmit, isLoading, setMessages } =
-    useChat({
-      api: "/api/chat",
-      body: { model },
-      onFinish: (message) => {
-        // Update conversation in history
-        setConversations((prev) =>
-          prev.map((c) =>
-            c.id === currentId
-              ? { ...c, messages: [...c.messages, { id: message.id, role: "assistant", content: message.content }] }
-              : c
-          )
-        );
-      },
-    });
-
-  // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Create new conv when first message is sent
-  useEffect(() => {
-    if (messages.length === 1 && messages[0].role === "user") {
-      const title = getConversationTitle(messages[0].content);
-      const newConv: Conversation = {
-        id: currentId ?? generateId(),
-        title,
-        messages: [],
-        createdAt: new Date(),
-      };
-      if (!currentId) {
-        setCurrentId(newConv.id);
-        setConversations((prev) => [newConv, ...prev]);
-      } else {
-        setConversations((prev) =>
-          prev.map((c) => (c.id === currentId ? { ...c, title } : c))
+  const sendMessage = useCallback(async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMsg: Message = { id: generateId(), role: "user", content: input.trim() };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setInput("");
+    setIsLoading(true);
+
+    if (newMessages.length === 1) {
+      const title = getConversationTitle(userMsg.content);
+      const id = generateId();
+      setCurrentId(id);
+      setConversations((prev) => [{ id, title, messages: [], createdAt: new Date() }, ...prev]);
+    }
+
+    const assistantId = generateId();
+    setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
+
+    try {
+      abortRef.current = new AbortController();
+      const res = await fetch("http://localhost:11434/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: abortRef.current.signal,
+        body: JSON.stringify({
+          model,
+          stream: true,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            ...newMessages.map((m) => ({ role: m.role, content: m.content })),
+          ],
+        }),
+      });
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let full = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const lines = decoder.decode(value).split("\n").filter(Boolean);
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line);
+            if (json.message?.content) {
+              full += json.message.content;
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantId ? { ...m, content: full } : m))
+              );
+            }
+          } catch {}
+        }
+      }
+    } catch (e: any) {
+      if (e.name !== "AbortError") {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, content: "Erreur : Ollama ne répond pas. Vérifie qu'il tourne." } : m
+          )
         );
       }
+    } finally {
+      setIsLoading(false);
     }
-  }, [messages]);
+  }, [input, messages, model, isLoading]);
 
   const handleNewChat = () => {
     setMessages([]);
@@ -67,32 +105,12 @@ export default function Home() {
     const conv = conversations.find((c) => c.id === id);
     if (conv) {
       setCurrentId(id);
-      setMessages(
-        conv.messages.map((m) => ({
-          id: m.id,
-          role: m.role,
-          content: m.content,
-        }))
-      );
+      setMessages(conv.messages);
     }
   };
 
   const handleSuggestion = (prompt: string) => {
     setInput(prompt);
-    // Auto submit
-    setTimeout(() => {
-      const form = document.querySelector("form");
-      if (!form) {
-        // Trigger manually
-        setInput(prompt);
-        handleSubmit(new Event("submit") as any, { data: { prompt } });
-      }
-    }, 50);
-  };
-
-  const submit = () => {
-    if (!input.trim() || isLoading) return;
-    handleSubmit(new Event("submit") as any);
   };
 
   const currentTitle =
@@ -110,39 +128,31 @@ export default function Home() {
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Topbar */}
-        <div className="px-7 py-4 border-b border-white/[0.07] flex items-center gap-3 flex-shrink-0 bg-[rgba(12,12,14,0.8)] backdrop-blur-md">
-          <span className="text-sm font-semibold tracking-tight">{currentTitle}</span>
-          <span className="ml-auto text-[12px] text-white/30">
-            {messages.length > 0
-              ? `${messages.length} message${messages.length > 1 ? "s" : ""}`
-              : "Prêt"}
+        <div className="px-6 py-4 border-b border-[#222] flex items-center flex-shrink-0 bg-black">
+          <span className="text-[12px] font-mono text-[#555] uppercase tracking-widest">{currentTitle}</span>
+          <span className="ml-auto text-[11px] text-[#333] font-mono">
+            {messages.length > 0 ? `${messages.length} msgs` : "prêt"}
           </span>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto">
           {messages.length === 0 ? (
             <WelcomeScreen onSuggestion={handleSuggestion} />
           ) : (
             <div className="py-8 flex flex-col gap-0">
               {messages.map((m) => (
-                <MessageBubble
-                  key={m.id}
-                  message={{ id: m.id, role: m.role as "user" | "assistant", content: m.content }}
-                />
+                <MessageBubble key={m.id} message={m} />
               ))}
-              {isLoading && <TypingIndicator />}
+              {isLoading && messages[messages.length - 1]?.content === "" && <TypingIndicator />}
               <div ref={messagesEndRef} />
             </div>
           )}
         </div>
 
-        {/* Input */}
         <InputArea
           value={input}
           onChange={setInput}
-          onSubmit={submit}
+          onSubmit={sendMessage}
           isLoading={isLoading}
         />
       </div>

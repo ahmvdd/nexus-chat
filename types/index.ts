@@ -12,7 +12,7 @@ export interface Conversation {
   createdAt: Date;
 }
 
-export type Model = "claude-sonnet-4-6" | "claude-haiku-4-5-20251001";
+export type Model = "llama3.2" | "mistral";
 
 export interface ModelOption {
   id: Model;

@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useEffect, KeyboardEvent } from "react";
-import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface InputAreaProps {
@@ -29,38 +28,31 @@ export default function InputArea({ value, onChange, onSubmit, isLoading }: Inpu
   };
 
   return (
-    <div className="px-7 pb-6 pt-4 border-t border-white/[0.07] bg-[rgba(12,12,14,0.9)] backdrop-blur-md flex-shrink-0">
-      <div
-        className={cn(
-          "max-w-[800px] mx-auto bg-white/[0.05] border rounded-2xl px-4 py-3.5 transition-all",
-          value
-            ? "border-green/40"
-            : "border-white/10 focus-within:border-green/40"
-        )}
-      >
+    <div className="px-6 pb-6 pt-4 border-t border-[#222] bg-black flex-shrink-0">
+      <div className={cn(
+        "max-w-[800px] mx-auto border transition-all",
+        value ? "border-white" : "border-[#333] focus-within:border-[#555]"
+      )}>
         <textarea
           ref={ref}
           rows={1}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="Message Nexus..."
+          placeholder="> message..."
           disabled={isLoading}
-          className="bg-transparent border-none outline-none text-white w-full font-sans text-[14.5px] resize-none leading-relaxed min-h-6 max-h-[180px] overflow-y-auto placeholder:text-white/22 disabled:opacity-50"
+          className="bg-black text-white w-full font-mono text-[13.5px] resize-none leading-relaxed min-h-[44px] max-h-[180px] overflow-y-auto placeholder:text-[#333] disabled:opacity-40 px-4 py-3 outline-none border-none"
         />
-        <div className="flex items-center mt-2.5 gap-2">
-          <span className="text-[11px] text-white/20">
-            ⏎ Envoyer · Shift+⏎ Nouvelle ligne
+        <div className="flex items-center px-4 pb-3 gap-2">
+          <span className="text-[10px] text-[#333] font-mono">
+            enter ↵ envoyer · shift+enter nouvelle ligne
           </span>
-          {value.length > 0 && (
-            <span className="text-[11px] text-white/20">{value.length}</span>
-          )}
           <button
             onClick={onSubmit}
             disabled={isLoading || !value.trim()}
-            className="ml-auto w-9 h-9 rounded-[10px] bg-green flex items-center justify-center hover:bg-green-light disabled:bg-green/30 disabled:cursor-not-allowed transition-all hover:scale-105 active:scale-95 flex-shrink-0"
+            className="ml-auto text-[11px] font-mono uppercase tracking-widest px-3 py-1 border border-[#333] text-[#555] hover:bg-white hover:text-black hover:border-white disabled:opacity-20 disabled:cursor-not-allowed transition-all"
           >
-            <ArrowRight size={16} color="#0C0C0E" strokeWidth={2.5} />
+            {isLoading ? "..." : "send"}
           </button>
         </div>
       </div>

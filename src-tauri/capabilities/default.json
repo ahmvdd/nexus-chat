@@ -1,0 +1,10 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema/capabilities.json",
+  "identifier": "default",
+  "description": "Capability par défaut",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default"
+  ]
+}

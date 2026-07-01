@@ -1,64 +1,70 @@
-# Nexus Chat 🔥
+# Nexus
 
-Un LLM chat personnel avec streaming, built avec Next.js 14 + Vercel AI SDK + Anthropic.
+Assistant IA local — 100% gratuit, 100% privé.
 
 ## Stack
 
 - **Next.js 14** (App Router)
 - **TypeScript**
 - **Tailwind CSS**
-- **Vercel AI SDK** — streaming token par token
-- **Anthropic** — claude-sonnet-4-6 / claude-haiku-4-5
+- **Ollama** — modèles locaux (llama3.2, mistral...)
+- **Tauri** — app desktop macOS/Windows/Linux
+
+## Prérequis
+
+- [Ollama](https://ollama.com) installé et en cours d'exécution
+- Node.js 18+
+- Rust (pour Tauri)
 
 ## Setup
 
 ```bash
 # 1. Clone & install
-git clone https://github.com/ton-username/nexus-chat
+git clone https://github.com/ahmvdd/nexus-chat
 cd nexus-chat
 npm install
 
-# 2. Config env
-cp .env.local.example .env.local
-# Ajoute ta clé Anthropic dans .env.local
+# 2. Télécharge un modèle Ollama
+ollama pull llama3.2
 
-# 3. Lance
+# 3. Lance en mode web
 npm run dev
 ```
 
 Ouvre [http://localhost:3000](http://localhost:3000)
+
+## App desktop (Tauri)
+
+```bash
+# Dev
+npm run tauri:dev
+
+# Build
+npm run tauri:build
+```
+
+L'app `.app` sera générée dans `src-tauri/target/release/bundle/macos/`.
 
 ## Structure
 
 ```
 nexus-chat/
 ├── app/
-│   ├── api/chat/route.ts    # Streaming endpoint
+│   ├── api/chat/route.ts    # Proxy Ollama (mode web)
 │   ├── page.tsx             # Page principale
-│   ├── layout.tsx
 │   └── globals.css
 ├── components/
-│   ├── Sidebar.tsx          # Nav + conversations
-│   ├── WelcomeScreen.tsx    # Écran d'accueil (hero cosmique)
-│   ├── MessageBubble.tsx    # Bulles de messages + markdown
+│   ├── Sidebar.tsx          # Nav + sélecteur de modèle
+│   ├── WelcomeScreen.tsx    # Écran d'accueil
+│   ├── MessageBubble.tsx    # Messages + markdown
 │   └── InputArea.tsx        # Zone de saisie
-├── lib/utils.ts
+├── src-tauri/               # Config Tauri (desktop)
 └── types/index.ts
-```
-
-## Deploy
-
-```bash
-# Vercel (recommandé)
-npx vercel
-
-# Ajoute ANTHROPIC_API_KEY dans les env vars Vercel
 ```
 
 ## Prochaines features
 
-- [ ] Streaming amélioré avec curseur
-- [ ] Persistance des conversations (localStorage → DB)
-- [ ] Upload de fichiers
-- [ ] Plusieurs assistants avec system prompts custom
-- [ ] Export des conversations
+- [ ] Persistance des conversations (localStorage)
+- [ ] Support de tous les modèles Ollama installés
+- [ ] Upload de fichiers (RAG)
+- [ ] Export des conversations en markdown

@@ -7,19 +7,17 @@ export default function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === "user";
 
   return (
-    <div className={cn("flex gap-3 px-7 py-1.5 max-w-[860px] w-full mx-auto animate-in", isUser && "justify-end")}>
+    <div className={cn("flex gap-3 px-6 py-2 max-w-[820px] w-full mx-auto animate-in", isUser && "justify-end")}>
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1a3320] to-green flex items-center justify-center text-xs flex-shrink-0 mt-1">
-          ✦
-        </div>
+        <span className="text-[#444] text-[11px] font-mono mt-1 flex-shrink-0 w-6">AI</span>
       )}
 
       <div
         className={cn(
-          "max-w-[640px] px-4 py-3 rounded-2xl text-[14.5px] leading-[1.7]",
+          "max-w-[640px] text-[13.5px] leading-[1.75] font-mono",
           isUser
-            ? "bg-green/10 border border-green/18 rounded-tr-[4px] text-white/90"
-            : "bg-surface border border-white/[0.07] rounded-tl-[4px] text-white/88"
+            ? "text-white border-l-2 border-white pl-3"
+            : "text-[#ccc]"
         )}
       >
         {isUser ? (
@@ -34,9 +32,7 @@ export default function MessageBubble({ message }: { message: Message }) {
       </div>
 
       {isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1a1a3e] to-indigo-400 flex items-center justify-center text-[11px] font-semibold flex-shrink-0 mt-1">
-          S
-        </div>
+        <span className="text-[#444] text-[11px] font-mono mt-1 flex-shrink-0 w-6">U</span>
       )}
     </div>
   );
@@ -44,23 +40,19 @@ export default function MessageBubble({ message }: { message: Message }) {
 
 export function TypingIndicator() {
   return (
-    <div className="flex gap-3 px-7 py-1.5 max-w-[860px] w-full mx-auto animate-in">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1a3320] to-green flex items-center justify-center text-xs flex-shrink-0 mt-1">
-        ✦
-      </div>
-      <div className="bg-surface border border-white/[0.07] rounded-2xl rounded-tl-[4px] px-4 py-3">
-        <div className="flex gap-1.5 items-center h-5">
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              className="w-1.5 h-1.5 rounded-full bg-green"
-              style={{
-                animation: `dot-bounce 1.2s infinite`,
-                animationDelay: `${i * 0.2}s`,
-              }}
-            />
-          ))}
-        </div>
+    <div className="flex gap-3 px-6 py-2 max-w-[820px] w-full mx-auto animate-in">
+      <span className="text-[#444] text-[11px] font-mono mt-1 flex-shrink-0 w-6">AI</span>
+      <div className="flex gap-2 items-center h-5">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="w-1 h-1 bg-[#444]"
+            style={{
+              animation: `dot-bounce 1.2s infinite`,
+              animationDelay: `${i * 0.2}s`,
+            }}
+          />
+        ))}
       </div>
     </div>
   );

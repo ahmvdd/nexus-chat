@@ -1,20 +1,56 @@
-import { anthropic } from "@ai-sdk/anthropic";
-import { streamText } from "ai";
-
-export const runtime = "edge";
-
 export async function POST(req: Request) {
-  const { messages, model = "claude-sonnet-4-6" } = await req.json();
+  const { messages, model = "llama3.2" } = await req.json();
 
-  const result = await streamText({
-    model: anthropic(model),
-    system: `Tu es Nexus, un assistant IA personnel élégant, direct et compétent.
-Tu réponds de manière concise et utile, avec une touche de personnalité.
-Tu peux répondre en français ou en anglais selon la langue de l'utilisateur.
-Pour le code, tu utilises toujours des blocs de code avec la syntaxe appropriée.`,
-    messages,
-    maxTokens: 2048,
+  const response = await fetch("http://localhost:11434/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      messages,
+      stream: true,
+    }),
   });
 
-  return result.toDataStreamResponse();
+  if (!response.ok) {
+    return new Response("Ollama error", { status: 500 });
+  }
+
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n").filter(Boolean);
+
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line);
+            if (json.message?.content) {
+              controller.enqueue(
+                encoder.encode(`0:${JSON.stringify(json.message.content)}\n`)
+              );
+            }
+            if (json.done) {
+              controller.enqueue(encoder.encode(`d:{}\n`));
+            }
+          } catch {}
+        }
+      }
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "x-vercel-ai-data-stream": "v1",
+    },
+  });
 }
