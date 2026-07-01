@@ -1,0 +1,124 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0c0c0e;
+  --surface: #111114;
+  --border: rgba(255, 255, 255, 0.07);
+  --green: #4ade80;
+  --muted: rgba(255, 255, 255, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: white;
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+/* Markdown dans les messages */
+.prose-nexus p {
+  margin-bottom: 0.5rem;
+}
+.prose-nexus p:last-child {
+  margin-bottom: 0;
+}
+.prose-nexus pre {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 10px 0;
+  font-family: "Fira Code", "Cascadia Code", monospace;
+}
+.prose-nexus code:not(pre code) {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 13px;
+  font-family: "Fira Code", monospace;
+}
+.prose-nexus strong {
+  color: white;
+  font-weight: 600;
+}
+.prose-nexus ul,
+.prose-nexus ol {
+  padding-left: 1.25rem;
+  margin: 6px 0;
+}
+.prose-nexus li {
+  margin: 3px 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+.prose-nexus h1,
+.prose-nexus h2,
+.prose-nexus h3 {
+  font-weight: 600;
+  color: white;
+  margin: 12px 0 6px;
+  letter-spacing: -0.02em;
+}
+.prose-nexus h1 { font-size: 1.25rem; }
+.prose-nexus h2 { font-size: 1.1rem; }
+.prose-nexus h3 { font-size: 1rem; }
+.prose-nexus a {
+  color: #4ade80;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-nexus blockquote {
+  border-left: 2px solid rgba(74, 222, 128, 0.4);
+  padding-left: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  margin: 8px 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-in {
+  animation: fadeInUp 0.2s ease forwards;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.blink { animation: blink 2.5s infinite; }
+
+@keyframes dot-bounce {
+  0%, 60%, 100% { opacity: 0.2; transform: scale(0.9); }
+  30% { opacity: 1; transform: scale(1.1); }
+}
