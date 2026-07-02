@@ -25,19 +25,16 @@ interface WelcomeScreenProps {
 
 export default function WelcomeScreen({ onSuggestion }: WelcomeScreenProps) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-8 py-10">
-      <div className="w-full max-w-[520px]">
-        <h1 className="text-4xl font-bold font-mono tracking-tight mb-1">NEXUS</h1>
-        <p className="text-[#444] font-mono text-[13px] mb-10">assistant local · ollama</p>
-
+    <div className="flex-1 flex flex-col items-end justify-end px-8 py-10">
+      <div className="w-full max-w-[320px]">
         <div className="flex flex-col gap-2">
           {SUGGESTIONS.map((s) => (
             <button
               key={s.label}
               onClick={() => onSuggestion(s.prompt)}
-              className="text-left px-4 py-3 border border-[#222] text-[12px] font-mono text-[#555] hover:border-white hover:text-white transition-all"
+              className="text-left px-4 py-2.5 border border-white/10 text-[11px] font-mono text-white/40 hover:border-white/40 hover:text-white/80 transition-all backdrop-blur-sm bg-black/20"
             >
-              <span className="text-[#333] mr-2">→</span>
+              <span className="text-white/20 mr-2">→</span>
               {s.label}
             </button>
           ))}

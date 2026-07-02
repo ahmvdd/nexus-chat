@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import WelcomeScreen from "@/components/WelcomeScreen";
-import MessageBubble, { TypingIndicator } from "@/components/MessageBubble";
+import MessageBubble from "@/components/MessageBubble";
 import InputArea from "@/components/InputArea";
 import { Conversation, Message, Model } from "@/types";
 import { generateId, getConversationTitle } from "@/lib/utils";
@@ -13,6 +13,8 @@ Tu réponds de manière concise et utile, avec une touche de personnalité.
 Tu peux répondre en français ou en anglais selon la langue de l'utilisateur.
 Pour le code, tu utilises toujours des blocs de code avec la syntaxe appropriée.`;
 
+const STORAGE_KEY = "nexus-conversations";
+
 export default function Home() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
@@ -20,12 +22,38 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [streamingId, setStreamingId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  // Charger les conversations depuis localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setConversations(parsed.map((c: Conversation) => ({ ...c, createdAt: new Date(c.createdAt) })));
+      }
+    } catch {}
+  }, []);
+
+  // Sauvegarder les conversations dans localStorage
+  useEffect(() => {
+    if (conversations.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+    }
+  }, [conversations]);
+
+  // Scroll automatique qui suit la génération
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const stopGeneration = () => {
+    abortRef.current?.abort();
+    setIsLoading(false);
+    setStreamingId(null);
+  };
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
@@ -36,14 +64,22 @@ export default function Home() {
     setInput("");
     setIsLoading(true);
 
+    let convId = currentId;
+
     if (newMessages.length === 1) {
       const title = getConversationTitle(userMsg.content);
       const id = generateId();
+      convId = id;
       setCurrentId(id);
-      setConversations((prev) => [{ id, title, messages: [], createdAt: new Date() }, ...prev]);
+      setConversations((prev) => [{ id, title, messages: newMessages, createdAt: new Date() }, ...prev]);
+    } else {
+      setConversations((prev) =>
+        prev.map((c) => c.id === convId ? { ...c, messages: newMessages } : c)
+      );
     }
 
     const assistantId = generateId();
+    setStreamingId(assistantId);
     setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
 
     try {
@@ -82,6 +118,12 @@ export default function Home() {
           } catch {}
         }
       }
+
+      // Sauvegarder la réponse complète
+      const finalMessages = [...newMessages, { id: assistantId, role: "assistant" as const, content: full }];
+      setConversations((prev) =>
+        prev.map((c) => c.id === convId ? { ...c, messages: finalMessages } : c)
+      );
     } catch (e: any) {
       if (e.name !== "AbortError") {
         setMessages((prev) =>
@@ -92,8 +134,9 @@ export default function Home() {
       }
     } finally {
       setIsLoading(false);
+      setStreamingId(null);
     }
-  }, [input, messages, model, isLoading]);
+  }, [input, messages, model, isLoading, currentId]);
 
   const handleNewChat = () => {
     setMessages([]);
@@ -128,22 +171,34 @@ export default function Home() {
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#222] flex items-center flex-shrink-0 bg-black">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center flex-shrink-0 backdrop-blur-xl bg-black/30">
           <span className="text-[12px] font-mono text-[#555] uppercase tracking-widest">{currentTitle}</span>
           <span className="ml-auto text-[11px] text-[#333] font-mono">
             {messages.length > 0 ? `${messages.length} msgs` : "prêt"}
           </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto relative">
+          {/* Fond fixe */}
+          <div
+            className="fixed inset-0 -z-10"
+            style={{
+              backgroundImage: "url('/chat-bg.png')",
+              backgroundSize: "cover",
+              backgroundPosition: "center center",
+            }}
+          />
           {messages.length === 0 ? (
             <WelcomeScreen onSuggestion={handleSuggestion} />
           ) : (
             <div className="py-8 flex flex-col gap-0">
               {messages.map((m) => (
-                <MessageBubble key={m.id} message={m} />
+                <MessageBubble
+                  key={m.id}
+                  message={m}
+                  isStreaming={m.id === streamingId}
+                />
               ))}
-              {isLoading && messages[messages.length - 1]?.content === "" && <TypingIndicator />}
               <div ref={messagesEndRef} />
             </div>
           )}
@@ -153,6 +208,7 @@ export default function Home() {
           value={input}
           onChange={setInput}
           onSubmit={sendMessage}
+          onStop={stopGeneration}
           isLoading={isLoading}
         />
       </div>
