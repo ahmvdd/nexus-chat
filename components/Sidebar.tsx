@@ -39,9 +39,9 @@ export default function Sidebar({
   });
 
   return (
-    <aside className="w-[200px] min-w-[200px] bg-black border-r border-[#222] flex flex-col gap-1 px-3 py-4 h-dvh">
+    <aside className="w-[200px] min-w-[200px] bg-black/40 backdrop-blur-xl border-r border-white/10 flex flex-col gap-1 px-3 py-4 h-dvh">
       {/* Logo */}
-      <div className="flex items-center gap-2 px-1 pb-4 mb-2 border-b border-[#222]">
+      <div className="flex items-center gap-2 px-1 pb-4 mb-2 border-b border-white/10">
         <span className="text-sm font-bold tracking-widest uppercase">NEXUS</span>
       </div>
 
@@ -89,7 +89,7 @@ export default function Sidebar({
       </div>
 
       {/* Footer */}
-      <div className="border-t border-[#222] pt-3 flex flex-col gap-2">
+      <div className="border-t border-white/10 pt-3 flex flex-col gap-2">
         <p className="text-[9px] text-[#444] uppercase tracking-[0.12em] px-1">Modèle</p>
         {MODELS.map((m) => (
           <button
@@ -106,7 +106,7 @@ export default function Sidebar({
           </button>
         ))}
 
-        <div className="flex items-center gap-2 px-1 pt-2 border-t border-[#222]">
+        <div className="flex items-center gap-2 px-1 pt-2 border-t border-white/10">
           <div className="w-5 h-5 bg-white flex items-center justify-center text-black text-[10px] font-bold">S</div>
           <span className="text-[11px] text-[#555]">Sayeh</span>
         </div>

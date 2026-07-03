@@ -23,8 +23,23 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamingId, setStreamingId] = useState<string | null>(null);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [pendingVoice, setPendingVoice] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const voiceEnabledRef = useRef(false);
+
+  useEffect(() => { voiceEnabledRef.current = voiceEnabled; }, [voiceEnabled]);
+
+  const speak = useCallback((text: string) => {
+    if (!voiceEnabledRef.current || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/```[\s\S]*?```/g, "bloc de code").replace(/[#*`_]/g, "");
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = "fr-FR";
+    utterance.rate = 1.05;
+    window.speechSynthesis.speak(utterance);
+  }, []);
 
   // Charger les conversations depuis localStorage
   useEffect(() => {
@@ -48,6 +63,14 @@ export default function Home() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Auto-submit après transcription vocale
+  useEffect(() => {
+    if (pendingVoice && input.trim()) {
+      setPendingVoice(false);
+      sendMessage();
+    }
+  }, [pendingVoice, input]);
 
   const stopGeneration = () => {
     abortRef.current?.abort();
@@ -124,6 +147,7 @@ export default function Home() {
       setConversations((prev) =>
         prev.map((c) => c.id === convId ? { ...c, messages: finalMessages } : c)
       );
+      speak(full);
     } catch (e: any) {
       if (e.name !== "AbortError") {
         setMessages((prev) =>
@@ -172,10 +196,19 @@ export default function Home() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10 flex items-center flex-shrink-0 backdrop-blur-xl bg-black/30">
-          <span className="text-[12px] font-mono text-[#555] uppercase tracking-widest">{currentTitle}</span>
-          <span className="ml-auto text-[11px] text-[#333] font-mono">
-            {messages.length > 0 ? `${messages.length} msgs` : "prêt"}
-          </span>
+          <span className="text-[12px] font-mono text-white/30 uppercase tracking-widest">{currentTitle}</span>
+          <div className="ml-auto flex items-center gap-3">
+            <button
+              onClick={() => { setVoiceEnabled(v => !v); window.speechSynthesis?.cancel(); }}
+              className={`text-[11px] font-mono px-2 py-1 border rounded-sm transition-all ${voiceEnabled ? "border-white/40 text-white/70" : "border-white/10 text-white/20 hover:text-white/40"}`}
+              title={voiceEnabled ? "Désactiver la voix" : "Activer la voix"}
+            >
+              {voiceEnabled ? "🔊 voix on" : "🔇 voix off"}
+            </button>
+            <span className="text-[11px] text-white/20 font-mono">
+              {messages.length > 0 ? `${messages.length} msgs` : "prêt"}
+            </span>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto relative">
@@ -209,6 +242,7 @@ export default function Home() {
           onChange={setInput}
           onSubmit={sendMessage}
           onStop={stopGeneration}
+          onVoiceResult={(transcript) => { setInput(transcript); setPendingVoice(true); }}
           isLoading={isLoading}
         />
       </div>
