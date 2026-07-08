@@ -2,6 +2,8 @@
 
 Assistant IA local — 100% gratuit, 100% privé.
 
+<img width="1312" height="912" alt="image" src="https://github.com/user-attachments/assets/66cfb097-f562-4595-b2b4-8b4c9f46383c" />
+
 ## Stack
 
 - **Next.js 14** (App Router)
